@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "674374269158",
+    "firebase_url": "https://memorizequran-8cc3a.firebaseio.com",
+    "project_id": "memorizequran-8cc3a",
+    "storage_bucket": "memorizequran-8cc3a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674374269158:android:b223838087442af6",
+        "android_client_info": {
+          "package_name": "org.faris.memorizequran"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674374269158-5494v67c4fnm0geaich2dqe8dd90tvqh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.faris.memorizequran",
+            "certificate_hash": "e06370f273fc7e2cbb46cb0738b344ad6b6ce42a"
+          }
+        },
+        {
+          "client_id": "674374269158-l6t39triugl8h5iha9id8vbcp5vpleup.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsIzB-rGbONsCkJ0EKic1Ww5yGeMALEHM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "674374269158-l6t39triugl8h5iha9id8vbcp5vpleup.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
