@@ -62,7 +62,7 @@ public class QueryUtils {
                 String name = currentSurah.getString("name_simple");
                 int versesCount = currentSurah.getInt("verses_count");
 
-                surahs.add(new Surah(name, versesCount));
+                surahs.add(new Surah((i + 1) + ". " + name, versesCount));
             }
 
         } catch (JSONException e) {
