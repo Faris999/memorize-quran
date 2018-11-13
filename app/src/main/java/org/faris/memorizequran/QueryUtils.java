@@ -1,6 +1,5 @@
 package org.faris.memorizequran;
 
-import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -21,14 +20,16 @@ import java.util.List;
 
 public class QueryUtils {
     private static final String LOG_TAG = QueryUtils.class.getSimpleName();
+
     /**
      * Create a private constructor because no one should ever create a {@link QueryUtils} object.
      * This class is only meant to hold static variables and methods, which can be accessed
      * directly from the class name QueryUtils (and an object instance of QueryUtils is not needed).
      */
-    private QueryUtils(){}
+    private QueryUtils() {
+    }
 
-    public static List<Surah> extractFeatureFromJson(String JSON) {
+    public static List<Surah> extractSurahFromJson(String JSON) {
         // If the JSON string is empty or null, then return early.
         if (TextUtils.isEmpty(JSON)) {
             return null;
@@ -59,8 +60,9 @@ public class QueryUtils {
                 // key called "properties", which represents a list of all properties
                 // for that earthquake.
                 String name = currentSurah.getString("name_simple");
+                int versesCount = currentSurah.getInt("verses_count");
 
-                surahs.add(new Surah(name));
+                surahs.add(new Surah(name, versesCount));
             }
 
         } catch (JSONException e) {
@@ -73,6 +75,53 @@ public class QueryUtils {
         // Return the list of earthquakes
         Log.v(LOG_TAG, String.valueOf(surahs.size()));
         return surahs;
+    }
+
+    public static List<Verse> extractVerseFromJson(String JSON) {
+        // If the JSON string is empty or null, then return early.
+        if (TextUtils.isEmpty(JSON)) {
+            return null;
+        }
+
+        // Create an empty ArrayList that we can start adding earthquakes to
+        List<Verse> verses = new ArrayList<>();
+
+        // Try to parse the JSON response string. If there's a problem with the way the JSON
+        // is formatted, a JSONException exception object will be thrown.
+        // Catch the exception so the app doesn't crash, and print the error message to the logs.
+        try {
+
+            // Create a JSONObject from the JSON response string
+            JSONObject baseJsonResponse = new JSONObject(JSON);
+
+            // Extract the JSONArray associated with the key called "features",
+            // which represents a list of features (or earthquakes).
+            JSONArray versesArray = baseJsonResponse.getJSONArray("verses");
+
+            // For each earthquake in the earthquakeArray, create an {@link Earthquake} object
+            for (int i = 0; i < versesArray.length(); i++) {
+
+                // Get a single earthquake at position i within the list of earthquakes
+                JSONObject currentVerse = versesArray.getJSONObject(i);
+
+                // For a given earthquake, extract the JSONObject associated with the
+                // key called "properties", which represents a list of all properties
+                // for that earthquake.
+                String name = "\u200e" + currentVerse.getInt("verse_number") + ". " + currentVerse.getString("text_madani");
+
+                verses.add(new Verse(name));
+            }
+
+        } catch (JSONException e) {
+            // If an error is thrown when executing any of the above statements in the "try" block,
+            // catch the exception here, so the app doesn't crash. Print a log message
+            // with the message from the exception.
+            Log.e("QueryUtils", "Problem parsing the earthquake JSON results", e);
+        }
+
+        // Return the list of earthquakes
+        Log.v(LOG_TAG, String.valueOf(verses.size()));
+        return verses;
     }
 
     /**
@@ -150,7 +199,7 @@ public class QueryUtils {
         return output.toString();
     }
 
-    public static String fetchEarthquakeData(String requestUrl) {
+    public static String fetchSurahData(String requestUrl) {
         // Create URL object
         URL url = createUrl(requestUrl);
 
@@ -162,10 +211,51 @@ public class QueryUtils {
             Log.e(LOG_TAG, "Problem making the HTTP request.", e);
         }
 
-        // Extract relevant fields from the JSON response and create a list of {@link Earthquake}s
-
         // Return the list of {@link Earthquake}s
         return jsonResponse;
     }
 
+    public static String fetchVerseData(String requestUrl) {
+        // Create URL object
+        URL url = createUrl(requestUrl);
+
+        // Perform HTTP request to the URL and receive a JSON response back
+        String jsonResponse = null;
+        try {
+            jsonResponse = makeHttpRequest(url);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Problem making the HTTP request.", e);
+        }
+
+        JSONObject json;
+        try {
+            json = new JSONObject(jsonResponse);
+            JSONObject jsonDeep = new JSONObject(jsonResponse);
+            JSONArray verses = json.getJSONArray("verses");
+
+            while (true) {
+                int page = jsonDeep.getJSONObject("meta").optInt("next_page", -1);
+                if (page == -1) break;
+                int id = verses.getJSONObject(0).getInt("chapter_id");
+                String newUrl = "http://staging.quran.com:3000/api/v3/chapters/id/verses/?limit=50&page=next_page";
+                newUrl = newUrl.replace("id", String.valueOf(id)).replace("next_page", String.valueOf(page));
+                String newResponse = makeHttpRequest(createUrl(newUrl));
+                jsonDeep = new JSONObject(newResponse);
+                JSONArray newVerses = jsonDeep.getJSONArray("verses");
+                for (int i = 0; i < newVerses.length(); i++) {
+                    verses = verses.put(newVerses.getJSONObject(i));
+                }
+            }
+
+            json.remove("verses");
+            json.put("verses", verses);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+
+
+        // Return the list of {@link Earthquake}s
+        return json.toString();
+    }
 }
