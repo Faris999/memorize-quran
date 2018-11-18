@@ -1,5 +1,6 @@
 package org.faris.memorizequran;
 
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -8,9 +9,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -257,5 +261,77 @@ public class QueryUtils {
 
         // Return the list of {@link Earthquake}s
         return json.toString();
+    }
+
+    public static void postLeaderboard(String json, String endpoint) {
+        HttpURLConnection conn = null;
+        URL url = createUrl("http://farishafiz999.pythonanywhere.com/" + endpoint);
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(15000);
+            conn.setConnectTimeout(15000);
+            conn.setRequestMethod("POST");
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-type", "application/json");
+
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            writer.write(json);
+            writer.flush();
+            writer.close();
+            os.close();
+            if (conn.getResponseCode() != 200) {
+                AsyncTask.execute(() -> postLeaderboard(json, endpoint));
+            }
+
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Problem retrieving the earthquake JSON results.", e);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+    }
+
+    public static List<User> extractLeaderboardFromJson(String JSON) {
+        Log.v(LOG_TAG, JSON);
+        if (TextUtils.isEmpty(JSON)) {
+            return null;
+        }
+        List<User> users = new ArrayList<>();
+        try {
+
+            JSONObject object = new JSONObject(JSON);
+
+            // Create a JSONArray from the JSON response string
+            JSONArray baseJsonResponse = object.getJSONArray("array");
+
+            // For each earthquake in the earthquakeArray, create an {@link Earthquake} object
+            for (int i = 0; i < baseJsonResponse.length(); i++) {
+
+                JSONObject currentUser = baseJsonResponse.getJSONObject(i);
+
+                // For a given earthquake, extract the JSONObject associated with the
+                // key called "properties", which represents a list of all properties
+                // for that earthquake.
+                String id = currentUser.getString("id");
+                String name = currentUser.getString("name");
+                int score = currentUser.getInt("score");
+
+                users.add(new User(id, name, score));
+            }
+
+        } catch (JSONException e) {
+            // If an error is thrown when executing any of the above statements in the "try" block,
+            // catch the exception here, so the app doesn't crash. Print a log message
+            // with the message from the exception.
+            Log.e("QueryUtils", "Problem parsing the earthquake JSON results", e);
+        }
+
+        // Return the list of earthquakes
+        Log.v(LOG_TAG, String.valueOf(users.size()));
+        return users;
     }
 }

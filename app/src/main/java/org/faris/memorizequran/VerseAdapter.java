@@ -50,13 +50,17 @@ public class VerseAdapter extends ArrayAdapter<Verse> {
             }
             ((SurahActivity) getContext()).checkCheckBox(checked);
             AsyncTask.execute(() -> {
-                for (Verse verse : MainActivity.db.verseDao().getAll()) {
-                    if (verse.num == position + 1 && verse.surah == surah) {
+                boolean inDb = false;
+                for (Verse verse : MainActivity.db.verseDao().getBySurah(surah)) {
+                    if (verse.num == position + 1) {
                         MainActivity.db.verseDao().update(surah, position + 1, selectedItemIds.get(position));
-                        return;
+                        inDb = true;
                     }
                 }
-                MainActivity.db.verseDao().insert(new Verse(surah, position + 1, selectedItemIds.get(position)));
+                if (!inDb) {
+                    MainActivity.db.verseDao().insert(new Verse(surah, position + 1, selectedItemIds.get(position)));
+                }
+                MainActivity.postLeaderboard(getContext());
             });
 
         });

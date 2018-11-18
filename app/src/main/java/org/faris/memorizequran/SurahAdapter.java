@@ -55,12 +55,8 @@ public class SurahAdapter extends ArrayAdapter<Surah> {
         return listItemView;
     }
 
-    void checkCheckBox(int position, boolean value) {
-        if (value)
-            selectedItemIds.put(position, true);
-        else
-            selectedItemIds.delete(position);
-
+    void checkCheckBox(int position) {
+        selectedItemIds.put(position, true);
         notifyDataSetChanged();
     }
 }

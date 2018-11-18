@@ -4,15 +4,24 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "org.faris.memorizequran"
-        minSdkVersion 22
+        minSdkVersion 20
         targetSdkVersion 28
-        versionCode 2
-        versionName "1.0"
+        versionCode 4
+        versionName "1.1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        release {
+            storeFile file("C:\\Users\\Faris Hafizhan\\keystore.jks")
+            storePassword "Tambang0"
+            keyAlias "key0"
+            keyPassword "Tambang0"
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -25,9 +34,21 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "android.arch.persistence.room:runtime:1.1.1"
+    implementation 'com.android.support:support-annotations:28.0.0'
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation('com.google.android.gms:play-services-auth:16.0.1') {
+        exclude module: 'support-v4'
+    }
+    implementation 'com.android.support:support-media-compat:28.0.0'
+    implementation 'com.android.support:support-compat:28.0.0'
+    implementation 'com.android.support:support-core-utils:28.0.0'
+    implementation 'com.android.support:support-core-ui:28.0.0'
+    implementation 'com.android.support:support-fragment:28.0.0'
+    implementation "com.android.support:customtabs:28.0.0"
+    implementation 'com.android.support:support-compat:28.0.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
     //implementation 'com.google.android.gms:play-services-games:15.0.1'
     //implementation 'com.google.firebase:firebase-core:16.0.0'
     testImplementation 'junit:junit:4.12'

@@ -5,9 +5,10 @@
     android:layout_height="match_parent"
     tools:context=".LeaderboardActivity">
 
-    <TextView
+    <ListView
+        android:id="@+id/list_leaderboard"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="hello world" />
+        android:maxHeight="16dp" />
 
 </android.support.constraint.ConstraintLayout>

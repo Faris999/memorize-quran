@@ -20,12 +20,12 @@ public class SurahActivity extends AppCompatActivity {
     private static final String REQUEST_URL = "http://staging.quran.com:3000/api/v3/chapters/id/verses/?limit=50";
     private static final String LOG_TAG = SurahActivity.class.getSimpleName();
 
-    private VerseAdapter adapter;
-    private SharedPreferences sharedPref;
-    private Intent intent;
-    private ProgressBar bar;
-    private TextView percent;
-    private ArrayList<Verse> verses;
+    private VerseAdapter mVerseAdapter;
+    private SharedPreferences mSharedPref;
+    private Intent mIntent;
+    private ProgressBar mProgressBar;
+    private TextView mPercentTextView;
+    private ArrayList<Verse> mVerses;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,43 +33,43 @@ public class SurahActivity extends AppCompatActivity {
         setContentView(R.layout.activity_surah);
 
         //Init variables
-        percent = findViewById(R.id.surah_text);
-        bar = findViewById(R.id.progressBar2);
+        mPercentTextView = findViewById(R.id.surah_text);
+        mProgressBar = findViewById(R.id.progressBar2);
         ListView verseView = findViewById(R.id.verse_list);
-        verses = new ArrayList<>();
-        intent = getIntent();
-        sharedPref = this.getSharedPreferences("org.faris.memorizequran.SharedPref", Context.MODE_PRIVATE);
-        adapter = new VerseAdapter(this, verses, intent.getIntExtra("id", 1));
+        mVerses = new ArrayList<>();
+        mIntent = getIntent();
+        mSharedPref = this.getSharedPreferences("org.faris.memorizequran.SharedPref", Context.MODE_PRIVATE);
+        mVerseAdapter = new VerseAdapter(this, mVerses, mIntent.getIntExtra("id", 1));
 
         //Set adapter for listView.
-        verseView.setAdapter(adapter);
+        verseView.setAdapter(mVerseAdapter);
 
         //Set title
         setTitle(getIntent().getStringExtra(MainActivity.EXTRA_MESSAGE));
 
-        String verseJson = sharedPref.getString("verseJson" + intent.getIntExtra("id", 1), "");
+        String verseJson = mSharedPref.getString("verseJson" + mIntent.getIntExtra("id", 1), "");
         if (verseJson.isEmpty()) {
             SurahActivity.QueryAsyncTask task = new SurahActivity.QueryAsyncTask();
-            task.execute(REQUEST_URL.replace("id", String.valueOf(intent.getIntExtra("id", 1))));
+            task.execute(REQUEST_URL.replace("id", String.valueOf(mIntent.getIntExtra("id", 1))));
         } else {
-            adapter.clear();
+            mVerseAdapter.clear();
             List<Verse> verseList = QueryUtils.extractVerseFromJson(verseJson);
             // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
             // data set. This will trigger the ListView to update.
             if (verseList != null && !verseList.isEmpty()) {
-                adapter.addAll(verseList);
+                mVerseAdapter.addAll(verseList);
             } else {
                 // If there isn't a valid response, inform the user.
                 Toast.makeText(this, "Cannot load verse list.", Toast.LENGTH_SHORT).show();
             }
         }
         //Check if verses already loaded.
-        if (verses.size() != 0) {
+        if (mVerses.size() != 0) {
             AsyncTask.execute(() -> {
                 int checked = 0;
-                for (Verse verse : MainActivity.db.verseDao().getBySurah(intent.getIntExtra("id", 1))) {
+                for (Verse verse : MainActivity.db.verseDao().getBySurah(mIntent.getIntExtra("id", 1))) {
                     if (verse.memorized) checked++;
-                    adapter.checkCheckBox(verse.num - 1, verse.memorized);
+                    runOnUiThread(() -> mVerseAdapter.checkCheckBox(verse.num - 1, verse.memorized));
                 }
                 int checked2 = checked;
                 runOnUiThread(() -> checkCheckBox(checked2));
@@ -79,8 +79,8 @@ public class SurahActivity extends AppCompatActivity {
 
     void checkCheckBox(int checked) {
         DecimalFormat df = new DecimalFormat("#.##");
-        percent.setText(df.format(checked * 100.0 / verses.size()) + "%");
-        bar.setProgress(checked * 100 / verses.size());
+        mPercentTextView.setText(df.format(checked * 100.0 / mVerses.size()) + "%");
+        mProgressBar.setProgress(checked * 100 / mVerses.size());
     }
 
     private class QueryAsyncTask extends AsyncTask<String, Void, String> {
@@ -93,7 +93,7 @@ public class SurahActivity extends AppCompatActivity {
             }
 
             String json = QueryUtils.fetchVerseData(urls[0]);
-            sharedPref.edit().putString("verseJson" + intent.getIntExtra("id", 1), json).apply();
+            mSharedPref.edit().putString("verseJson" + mIntent.getIntExtra("id", 1), json).apply();
 
             return json;
         }
@@ -101,13 +101,13 @@ public class SurahActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String data) {
             // Clear the adapter of previous earthquake data
-            adapter.clear();
+            mVerseAdapter.clear();
 
             List<Verse> verseList = QueryUtils.extractVerseFromJson(data);
             // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
             // data set. This will trigger the ListView to update.
             if (verseList != null && !verseList.isEmpty()) {
-                adapter.addAll(verseList);
+                mVerseAdapter.addAll(verseList);
             }
         }
     }
